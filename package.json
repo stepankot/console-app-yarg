@@ -4,6 +4,7 @@
   "description": "this is simple NodeJS application",
   "main": "index.js",
   "scripts": {
+    "serve": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -16,5 +17,8 @@
     "@types/yargs": "^17.0.35",
     "chalk": "^4.1.2",
     "yargs": "^18.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

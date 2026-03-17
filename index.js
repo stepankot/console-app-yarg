@@ -1,37 +1,37 @@
-const yargs = require('yargs/yargs');
-const {addNote, printNotes, deleteNote} = require('./notes.controller')
-const { hideBin } = require('yargs/helpers');
+const http = require('http');
+const fs = require('fs/promises')
+const path = require('path')
+const {addNote} = require('./notes.controller')
 
+const basePath = path.join(__dirname, 'pages')
 
-const yarg = hideBin(process.argv);
-
-
-yargs(yarg)
-  .command('add', 'Add new note', (yargs) => {
-		return yargs.option('title', {
-			type: 'string',
-			describe: 'Название заметки',
-			demandOption: true,
+const port = 3000;
+const server = http.createServer(async (req, res)=>{
+	if (req.method === "GET") {
+		const content = await fs.readFile(path.join(basePath, 'index.html'))
+		// res.setHeader("Content-Type", 'text/html')
+		res.writeHead(200, {
+			"Content-Type": 'text/html'
 		})
-	}, ({title}) => {
-    addNote(title)
-  })
-  .command('remove', 'Remove note by id', (yargs) => {
-		return yargs.option('id', {
-			type: 'string',
-			describe: 'ID заметки',
-			demandOption: true,
-		})
-	}, ({id}) => {
-    deleteNote(id)
-  })
-  .command('list', 'List all notes', () => {}, async () => {
-    const notes = await printNotes()
-		console.log(notes)
-  })
-  .demandCommand(1, 'Укажите команду')
-  .help()
-  .parse()
-  
+		res.end(content)
+	} else if (req.method === "POST") {
 
-yargs(yarg).version('1.0.0')
+		res.writeHead(200, {
+			"Content-Type": 'text/plain; charset=utf-8'
+		})
+
+		const body = []
+		req.on('data', data => {
+			body.push(Buffer.from(data))
+		})
+		req.on('end', ()=> {
+			const title = body.toString().split('=')[1].replaceAll("+", " ")
+			addNote(title)
+			res.end("post succes")
+		})
+
+	}
+})
+server.listen(port, ()=>{
+	console.log(`Server has been started on port ${port}...`)
+})
