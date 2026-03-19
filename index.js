@@ -1,5 +1,5 @@
 const yargs = require('yargs/yargs');
-const {addNote, printNotes, deleteNote} = require('./notes.controller')
+const {addNote, printNotes, deleteNote, updateNote} = require('./notes.controller')
 const { hideBin } = require('yargs/helpers');
 
 
@@ -25,6 +25,22 @@ yargs(yarg)
 	}, ({id}) => {
     deleteNote(id)
   })
+	.command('edit', 'Edit note by id', (yargs) => {
+		return yargs
+			.option("id", {
+				type: 'string',
+				describe: 'ID заметки',
+				demandOption: true,
+			})
+			.option("title", {
+				type: 'string',
+				describe: 'Новый заголовок заметки',
+				demandOption: true,
+			})
+	}, ({id, title}) => {
+		const noteData = {id, title}
+		updateNote(noteData)
+	})
   .command('list', 'List all notes', () => {}, async () => {
     const notes = await printNotes()
 		console.log(notes)
@@ -32,6 +48,5 @@ yargs(yarg)
   .demandCommand(1, 'Укажите команду')
   .help()
   .parse()
-  
-
+	
 yargs(yarg).version('1.0.0')
