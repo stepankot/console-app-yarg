@@ -42,8 +42,19 @@ async function printNotes() {
 	return notes
 }
 
+async function updateNote(noteData) {
+  const notes = await getNotes()
+  const index = notes.findIndex(note => note.id === noteData.id)
+  if (index >= 0) {
+    notes[index] = { ...notes[index], ...noteData }
+    await saveNotes(notes)
+    console.log(chalk.bgGreen(`Заметка с id="${noteData.id}" обновлена!`))
+  }
+}
+
 module.exports = {
 	addNote,
 	printNotes,
 	deleteNote
 }
+
