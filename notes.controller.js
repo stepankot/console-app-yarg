@@ -39,8 +39,7 @@ async function deleteNote(id) {
 
 async function printNotes() {
 	const notes = await getNotes()
-	log(chalk.bgBlue("Here is the list of notes:"))
-	console.table(notes, ['title', 'id']);
+	return notes
 }
 
 module.exports = {

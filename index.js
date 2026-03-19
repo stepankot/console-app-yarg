@@ -1,37 +1,48 @@
 const http = require('http');
 const fs = require('fs/promises')
 const path = require('path')
-const {addNote} = require('./notes.controller')
+const express = require('express')
+const {addNote, printNotes, deleteNote} = require('./notes.controller')
 
 const basePath = path.join(__dirname, 'pages')
 
-const port = 3000;
-const server = http.createServer(async (req, res)=>{
-	if (req.method === "GET") {
-		const content = await fs.readFile(path.join(basePath, 'index.html'))
-		// res.setHeader("Content-Type", 'text/html')
-		res.writeHead(200, {
-			"Content-Type": 'text/html'
-		})
-		res.end(content)
-	} else if (req.method === "POST") {
+const port = 3000
 
-		res.writeHead(200, {
-			"Content-Type": 'text/plain; charset=utf-8'
-		})
+const app = express();
+app.set('view engine', 'ejs')
+app.set('views', 'pages')
+app.use(express.static(path.resolve(__dirname, 'public')))
 
-		const body = []
-		req.on('data', data => {
-			body.push(Buffer.from(data))
-		})
-		req.on('end', ()=> {
-			const title = body.toString().split('=')[1].replaceAll("+", " ")
-			addNote(title)
-			res.end("post succes")
-		})
+app.use(express.urlencoded({extended: true}))
 
-	}
+app.get('/', async (req, res)=> {
+	res.render('index', {
+		title: 'Express App',
+		notes: await printNotes(),
+		created: false
+	})
 })
-server.listen(port, ()=>{
+app.post('/', async (req, res)=> {
+  await addNote(req.body.title)
+		res.render('index', {
+		title: 'Express App',
+		notes: await printNotes(),
+		created: true
+	}
+)
+})
+
+app.delete("/:id", async (req, res) => {
+	await deleteNote(req.params.id)
+	await addNote(req.body.title)
+		res.render('index', {
+		title: 'Express App',
+		notes: await printNotes(),
+		created: false
+	})
+})
+
+
+app.listen(port, ()=>{
 	console.log(`Server has been started on port ${port}...`)
 })
