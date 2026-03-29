@@ -3,43 +3,45 @@ const path = require('path')
 const chalk = require('chalk')
 
 const notesPath = path.join(__dirname, 'db.json')
-const log = console.log;
-
-async function writeFileNotes(notes) {
-	await fs.writeFile(notesPath, JSON.stringify(notes))
-}
-
 
 async function addNote(title) {
-	const notes = await getNotes()
-	const note = {
-		id: Date.now().toString(),
-		title,
-	}
-	notes.push(note)
-	await writeFileNotes(notes)
-	log(chalk.green("Заметка добавлена!"))
+  const notes = await getNotes()
+  const note = {
+    title,
+    id: Date.now().toString()
+  }
+
+  notes.push(note)
+
+  await saveNotes(notes)
+  console.log(chalk.bgGreen('Note was added!'))
 }
 
 async function getNotes() {
-	const notes = await fs.readFile(notesPath, {encoding: 'utf-8'})
-	const parseNotes = JSON.parse(notes)
-	return Array.isArray(parseNotes) ? parseNotes : []
+  const notes = await fs.readFile(notesPath, {encoding: 'utf-8'})
+  return Array.isArray(JSON.parse(notes)) ? JSON.parse(notes) : []
 }
 
-async function deleteNote(id) {
-	const notes = await getNotes();
-	const note = notes.find(note => note.id === id)
-	
-	if (!note) return log(chalk.red("Заметки с id:", id, "не существует"))
-	const newNotesArray = notes.filter(note => note.id !== id)
-	await writeFileNotes(newNotesArray)
-	log(chalk.green(`Заметка ${note.title} успешно удалена!`))
+async function saveNotes(notes) {
+  await fs.writeFile(notesPath, JSON.stringify(notes))
 }
 
 async function printNotes() {
-	const notes = await getNotes()
-	return notes
+  const notes = await getNotes()
+
+  console.log(chalk.bgBlue('Here is the list of notes:'))
+  notes.forEach(note => {
+    console.log(chalk.bgWhite(note.id), chalk.blue(note.title))
+  })
+}
+
+async function removeNote(id) {
+  const notes = await getNotes()
+
+  const filtered = notes.filter(note => note.id !== id)
+
+  await saveNotes(filtered)
+  console.log(chalk.red(`Note with id="${id}" has been removed.`))
 }
 
 async function updateNote(noteData) {
@@ -48,13 +50,10 @@ async function updateNote(noteData) {
   if (index >= 0) {
     notes[index] = { ...notes[index], ...noteData }
     await saveNotes(notes)
-    console.log(chalk.bgGreen(`Заметка с id="${noteData.id}" обновлена!`))
+    console.log(chalk.bgGreen(`Note with id="${noteData.id}" has been updated!`))
   }
 }
 
 module.exports = {
-	addNote,
-	printNotes,
-	deleteNote
+  addNote, getNotes, removeNote, updateNote
 }
-
